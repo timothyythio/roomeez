@@ -2,30 +2,63 @@ const sampleData = {
   users: [
     {
       name: "Alice Johnson",
-      username: "alicej",
       email: "alice@example.com",
+      emailVerified: null,
+      password: "password123", // plain for now
       phoneNumber: "1234567890",
-      password: "password123",
-      avatarUrl: "https://i.pravatar.cc/150?img=1",
-      role: "USER",
+      role: "user",
+      image: "https://i.pravatar.cc/150?img=1",
     },
     {
       name: "Bob Smith",
-      username: "bobsmith",
       email: "bob@example.com",
-      phoneNumber: "9876543210",
+      emailVerified: null,
       password: "securepass",
-      avatarUrl: "https://i.pravatar.cc/150?img=2",
-      role: "ADMIN",
+      phoneNumber: "9876543210",
+      role: "admin",
+      image: "https://i.pravatar.cc/150?img=2",
     },
     {
       name: "Charlie Doe",
-      username: "charlie",
       email: "charlie@example.com",
-      phoneNumber: null,
+      emailVerified: null,
       password: "testtest",
-      avatarUrl: null,
-      role: "USER",
+      phoneNumber: null,
+      role: "user",
+      image: null,
+    },
+  ],
+
+  household: {
+    name: "Metro Apartment",
+  },
+
+  householdMembers: [
+    { userEmail: "alice@example.com", role: "admin" },
+    { userEmail: "bob@example.com", role: "member" },
+    { userEmail: "charlie@example.com", role: "member" },
+  ],
+
+  bills: [
+    {
+      title: "Electricity Bill",
+      amount: 90.0,
+      paidByEmail: "alice@example.com",
+      splits: {
+        "alice@example.com": 30.0,
+        "bob@example.com": 30.0,
+        "charlie@example.com": 30.0,
+      },
+    },
+    {
+      title: "Water Bill",
+      amount: 60.0,
+      paidByEmail: "bob@example.com",
+      splits: {
+        "alice@example.com": 20.0,
+        "bob@example.com": 20.0,
+        "charlie@example.com": 20.0,
+      },
     },
   ],
 };

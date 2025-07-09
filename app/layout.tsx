@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: {
     default: APP_NAME,
-    template: `Prostore | %s`,
+    template: `RoomEez | %s`,
   },
   description: APP_DESC,
   metadataBase: new URL(SERVER_URL),

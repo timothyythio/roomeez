@@ -3,7 +3,7 @@ export const metadata = {
 };
 
 const Homepage = () => {
-  return <>ProStore</>;
+  return <>RoomEez</>;
 };
 
 export default Homepage;
