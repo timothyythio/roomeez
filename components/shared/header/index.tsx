@@ -9,7 +9,7 @@ const Header = () => {
         <div className="flex-start">
           <Link href="/" className="flex-start ml-4">
             <Image
-              src="/images/logo2.svg"
+              src="/images/logo.svg"
               alt={`${APP_NAME} logo`}
               height={48}
               width={48}
