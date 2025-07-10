@@ -9,6 +9,10 @@ async function main() {
   await prisma.householdMember.deleteMany();
   await prisma.household.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.user.deleteMany();
 
   const userMap = new Map<string, string>(); // email -> userId
   for (const user of sampleData.users) {

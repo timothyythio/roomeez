@@ -1,10 +1,12 @@
+import { hashSync } from "bcrypt-ts-edge";
+
 const sampleData = {
   users: [
     {
       name: "Alice Johnson",
       email: "alice@example.com",
       emailVerified: null,
-      password: "password123", // plain for now
+      password: hashSync("123456", 10),
       phoneNumber: "1234567890",
       role: "user",
       image: "https://i.pravatar.cc/150?img=1",
@@ -13,7 +15,7 @@ const sampleData = {
       name: "Bob Smith",
       email: "bob@example.com",
       emailVerified: null,
-      password: "securepass",
+      password: hashSync("123456", 10),
       phoneNumber: "9876543210",
       role: "admin",
       image: "https://i.pravatar.cc/150?img=2",
@@ -22,7 +24,7 @@ const sampleData = {
       name: "Charlie Doe",
       email: "charlie@example.com",
       emailVerified: null,
-      password: "testtest",
+      password: hashSync("123456", 10),
       phoneNumber: null,
       role: "user",
       image: null,
