@@ -21,13 +21,31 @@ export const metadata = {
 
 const Homepage = async () => {
   const user = await getCurrentUser();
-  if (!user) throw new Error("Not logged in!");
+  if (!user) {
+    return (
+      <section className="wrapper space-y-4">
+        <h1 className="text-2xl font-bold">Youre not signed in</h1>
+        <p className="text-muted-foreground">
+          Please sign in to view your dashboard.
+        </p>
+      </section>
+    );
+  }
 
   const username = user.name === "Error" ? "User" : user.name;
   console.log(user);
 
   const household = await getCurrentHousehold();
-  if (!household) throw new Error("No household found");
+  if (!household) {
+    return (
+      <section className="wrapper space-y-4">
+        <h1 className="text-2xl font-bold">No household found</h1>
+        <p className="text-muted-foreground">
+          Join or create a household to continue.
+        </p>
+      </section>
+    );
+  }
   const members = household?.members;
   const memberCount = household.members.length ?? 0;
 
@@ -120,7 +138,6 @@ const Homepage = async () => {
                     >
                       {member.user.name}
                     </span>
-                    {/* className={cn("text-sm font-medium", member.user.id === user.id ? "font-semibold text-blue-600" : "")} */}
                     <Badge variant="secondary" className="w-fit text-xs mt-1">
                       {member.role}
                     </Badge>
