@@ -5,7 +5,15 @@ import { hashSync } from "bcrypt-ts-edge";
 import { prisma } from "@/db/prisma";
 import { SignInFormSchema, SignUpFormSchema } from "../validators";
 import { formatError } from "../utils";
+import { auth } from "@/auth";
 // import z from "zod";
+
+export async function getCurrentUser() {
+  const session = await auth();
+  if (!session) return null;
+
+  return session.user;
+}
 
 //sign in user with credentials (using credentials provider)
 
@@ -75,4 +83,56 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     }
     return { success: false, message: formatError(error) };
   }
+}
+
+export async function getHouseholdByUserId(id: string) {
+  const res = await prisma.householdMember.findFirst({
+    where: { userId: id },
+    include: {
+      household: {
+        include: {
+          members: {
+            include: {
+              user: true, // get name, email, etc.
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return res?.household;
+}
+
+export async function getCurrentHousehold() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) return null;
+
+  const res = await prisma.householdMember.findFirst({
+    where: { userId },
+    include: {
+      household: {
+        include: {
+          members: {
+            include: {
+              user: true, // get name, email, etc.
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const household = res?.household;
+  if (household) {
+    household.members = household.members.sort((a, b) => {
+      if (a.role === "owner") return -1;
+      if (b.role === "owner") return 1;
+      return 0;
+    });
+  }
+
+  return res?.household;
 }
