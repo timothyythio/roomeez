@@ -46,7 +46,7 @@ export async function signInWithCredentials(
 
 export async function signOutUser() {
   //calls the sign out from /auth
-  await signOut();
+  await signOut({ redirectTo: "/", redirect: true });
   console.log("Signed Out Succesfully!");
 }
 

@@ -7,7 +7,7 @@ const Header = () => {
   return (
     <header className="w-full border-b bg-white">
       <div className="wrapper flex items-center justify-between py-3 px-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2">
           <Image
             src="/images/roomeez-logo.png"
             alt={`${APP_NAME} logo`}

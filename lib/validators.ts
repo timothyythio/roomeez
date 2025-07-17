@@ -22,3 +22,17 @@ export const SignUpFormSchema = z
     message: "Passwords must match",
     path: ["confirmPassword"],
   });
+
+export const CreateBillSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  amount: z.coerce.number().positive(),
+  categoryId: z.string().min(1),
+  paidById: z.string().min(1),
+  splitEvenly: z.union([z.literal("true"), z.literal("false")]),
+  splitWith: z.union([
+    z.array(z.string()),
+    z.string(), // edge case: single checkbox
+  ]),
+  customSplits: z.array(z.string()).optional(),
+});

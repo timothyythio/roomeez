@@ -41,10 +41,21 @@ const sampleData = {
     { userEmail: "charlie@example.com", role: "member" },
   ],
 
+  billCategories: [
+    { name: "Utilities", createdBy: null },
+    { name: "Groceries", createdBy: null },
+    { name: "Rent", createdBy: null },
+    { name: "Food and Beverage", createdBy: null },
+    { name: "Entertainment", createdBy: null },
+    { name: "Subscription", createdBy: null },
+  ],
+
   bills: [
     {
       title: "Electricity Bill",
+      description: "Monthly Hydro Bill",
       amount: 90.0,
+      categoryName: "Utilities",
       paidByEmail: "alice@example.com",
       splits: {
         "alice@example.com": 30.0,
@@ -54,7 +65,9 @@ const sampleData = {
     },
     {
       title: "Water Bill",
+      description: "Water utility charges",
       amount: 60.0,
+      categoryName: "Utilities",
       paidByEmail: "bob@example.com",
       splits: {
         "alice@example.com": 20.0,

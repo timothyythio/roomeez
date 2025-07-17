@@ -26,25 +26,46 @@ model HouseholdMember {
 }
 
 model Bill {
-  id          String      @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
+  description String?
+  category    BillCategory? @relation(fields: [categoryId], references: [id])
+  categoryId  String?
   amount      Float
-  paidBy      User        @relation("PaidBills", fields: [paidById], references: [id])
-  paidById    String
-  household   Household   @relation(fields: [householdId], references: [id])
+
+  paidBy   User   @relation("PaidBills", fields: [paidById], references: [id])
+  paidById String
+
+  household   Household @relation(fields: [householdId], references: [id])
   householdId String
-  createdAt   DateTime    @default(now())
-  billSplits  BillSplit[]
+
+  createdAt DateTime @default(now())
+  isSettled Boolean  @default(false)
+
+  billSplits BillSplit[]
 }
 
 model BillSplit {
-  id         String  @id @default(cuid())
-  bill       Bill    @relation(fields: [billId], references: [id])
-  billId     String
-  user       User    @relation(fields: [userId], references: [id])
-  userId     String
-  amountOwed Float
-  hasPaid    Boolean @default(false)
+  id     String @id @default(cuid())
+  bill   Bill   @relation(fields: [billId], references: [id])
+  billId String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  amountOwed       Float
+  hasPaid          Boolean @default(false) // Payer marks as paid
+  paymentConfirmed Boolean @default(false) // Payee confirms payment
+  note             String? // Optional message like "Paid via e-transfer"
+}
+
+model BillCategory {
+  id          String  @id @default(cuid())
+  name        String
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+  createdById String?
+
+  bills Bill[]
 }
 
 model User {
@@ -64,6 +85,7 @@ model User {
   sessions      Session[]
   // // Optional for WebAuthn support
   // Authenticator Authenticator[]
+  BillCategory  BillCategory[]
 }
 
 model Account {

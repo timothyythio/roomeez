@@ -11,11 +11,11 @@ export function formatError(error: any) {
   if (error.name === "ZodError") {
     //Handle any Zod errors
 
-    const fieldErrors = Object.keys(error.errors).map(
+    const fieldError = Object.keys(error.errors).map(
       (field) => error.errors[field].message
     );
 
-    return fieldErrors.join(". ");
+    return fieldError.join(". ");
   } else if (
     error.name === "PrismaClientKnownRequestError" &&
     error.code === "P2002"
