@@ -15,6 +15,16 @@ export async function getCurrentUser() {
   return session.user;
 }
 
+export async function getUserById(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!user) return null;
+  return user;
+}
+
 //sign in user with credentials (using credentials provider)
 
 export async function signInWithCredentials(

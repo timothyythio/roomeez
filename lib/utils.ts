@@ -71,3 +71,14 @@ export const formatDateTime = (dateString: Date) => {
     timeOnly: formattedTime,
   };
 };
+
+const CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789"; // no 0, O, I, etc.
+
+export function generateInviteCode(length = 6) {
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    const char = CHARSET[Math.floor(Math.random() * CHARSET.length)];
+    code += char;
+  }
+  return code; // e.g. "AB3X9K"
+}

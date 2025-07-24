@@ -9,11 +9,14 @@ datasource db {
 }
 
 model Household {
-  id        String            @id @default(cuid())
-  name      String
-  createdAt DateTime          @default(now())
-  members   HouseholdMember[]
-  bills     Bill[]
+  id         String @id @default(cuid())
+  name       String
+  inviteCode String @unique
+
+  createdAt DateTime @default(now())
+
+  members HouseholdMember[]
+  bills   Bill[]
 }
 
 model HouseholdMember {

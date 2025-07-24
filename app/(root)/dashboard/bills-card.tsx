@@ -49,7 +49,12 @@ const BillsCard = ({ totalBills, amountOwing, amountOwed }: Props) => {
             + Add New Bill
           </Button>
         </Link>
-        <Button variant="outline">View All Bills</Button>
+
+        <Link href="/bills/create">
+          <Button variant="outline" size="lg">
+            View All Bills
+          </Button>
+        </Link>
       </div>
     </div>
   );

@@ -27,6 +27,10 @@ export const UpdateUserSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
+export const CreateHouseholdSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+});
+
 export const CreateBillSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),

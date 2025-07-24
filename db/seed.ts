@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import sampleData from "./sample-data";
+import { generateInviteCode } from "@/lib/utils";
 
 const prisma = new PrismaClient();
 
@@ -26,6 +27,7 @@ async function main() {
   const household = await prisma.household.create({
     data: {
       name: sampleData.household.name,
+      inviteCode: generateInviteCode(),
     },
   });
 

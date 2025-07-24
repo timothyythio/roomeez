@@ -13,6 +13,10 @@ import {
 } from "@/lib/actions/user.actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import LeaveHouseholdButton from "@/components/shared/household/leave-household-button";
+import JoinHouseholdDialog from "@/components/shared/household/join-household-dialog";
+import InviteMemberDialog from "@/components/shared/household/invite-member-dialog";
 
 const HouseholdCard = async () => {
   const user = await getCurrentUser();
@@ -37,12 +41,15 @@ const HouseholdCard = async () => {
         <CardContent className="space-y-6">
           You are not a part of a household :(
           <div className="space-y-1 pt-4">
-            <Button variant="default" className="w-full text-left text-sm mt-2">
-              + Create Household
-            </Button>
-            <Button variant="outline" className="w-full text-left text-sm mt-2">
-              Join Household
-            </Button>
+            <Link href="/household/create">
+              <Button
+                variant="default"
+                className="w-full text-left text-sm mt-2"
+              >
+                + Create Household
+              </Button>
+            </Link>
+            <JoinHouseholdDialog />
           </div>
         </CardContent>
       </Card>
@@ -95,18 +102,14 @@ const HouseholdCard = async () => {
         </ul>
 
         {/* Invite Button */}
-        <Button variant="outline" className="w-full">
-          + Invite Member
-        </Button>
+        <InviteMemberDialog />
 
         {/* Optional Actions */}
         <div className="space-y-1 pt-4 border-t">
           <Button variant="ghost" className="w-full text-left text-sm">
             Rename Household
           </Button>
-          <Button variant="destructive" className="w-full text-left text-sm">
-            Leave Household
-          </Button>
+          <LeaveHouseholdButton />
         </div>
       </CardContent>
     </Card>
