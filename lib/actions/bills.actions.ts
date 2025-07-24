@@ -105,6 +105,32 @@ export async function createBill(formData: FormData) {
   };
 }
 
+export async function getBillById(billId: string) {
+  return await prisma.bill.findUnique({
+    where: { id: billId },
+    include: {
+      category: true,
+      paidBy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      billSplits: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function getMonthlyTotalBills() {
   const household = await getCurrentHousehold();
   if (!household) return 0;
@@ -164,4 +190,221 @@ export async function getTotalAmountOwed() {
   });
 
   return receivable._sum.amountOwed ?? 0;
+}
+
+export async function getMonthlyBills() {
+  const household = await getCurrentHousehold();
+  if (!household) return [];
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const now = new Date();
+
+  const bills = await prisma.bill.findMany({
+    where: {
+      householdId: household.id,
+      createdAt: {
+        gte: startOfMonth(now),
+        lte: endOfMonth(now),
+      },
+    },
+    include: {
+      category: true,
+      paidBy: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+      billSplits: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return bills;
+}
+
+export async function getBillsUserOwes() {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const unpaidSplits = await prisma.billSplit.findMany({
+    where: {
+      userId: user.id,
+      hasPaid: false,
+    },
+    include: {
+      bill: {
+        include: {
+          category: true,
+          paidBy: {
+            select: {
+              name: true, // Assumes 'name' is on user model
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return unpaidSplits.map((split) => ({
+    id: split.bill.id,
+    title: split.bill.title,
+    amount: split.bill.amount,
+    amountOwed: split.amountOwed,
+    createdAt: split.bill.createdAt,
+    category: split.bill.category?.name ?? "Uncategorized",
+    paidByName: split.bill.paidBy?.name ?? "Unknown",
+    hasPaid: split.hasPaid,
+    hasConfirmed: split.paymentConfirmed,
+    isSettled: split.bill.isSettled,
+  }));
+}
+
+export async function getBillsUserIsOwed() {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const splits = await prisma.billSplit.findMany({
+    where: {
+      hasPaid: false,
+      userId: { not: user.id }, // others
+      bill: {
+        paidById: user.id, // user is payer
+      },
+    },
+    include: {
+      bill: {
+        include: {
+          category: true,
+          paidBy: {
+            select: { name: true },
+          },
+        },
+      },
+      user: {
+        select: { name: true },
+      },
+    },
+  });
+
+  return splits.map((split) => ({
+    id: split.bill.id,
+    title: split.bill.title,
+    amount: split.bill.amount,
+    amountOwed: split.amountOwed,
+    createdAt: split.bill.createdAt,
+    owedByName: split.user.name ?? "Unknown",
+    category: split.bill.category?.name ?? "Uncategorized",
+    paidByName: split.bill.paidBy?.name ?? "Unknown",
+    hasPaid: split.hasPaid,
+    hasConfirmed: split.paymentConfirmed,
+    isSettled: split.bill.isSettled,
+  }));
+}
+
+export async function getBillParticipants(billId: string) {
+  return await prisma.billSplit.findMany({
+    where: {
+      billId,
+    },
+    include: {
+      user: true,
+    },
+  });
+}
+
+type BillUserStatus = {
+  role: "payer" | "payee";
+  paid: boolean;
+  confirmed: boolean;
+};
+
+export async function getUserStatusInBill(
+  billId: string,
+  userId: string
+): Promise<BillUserStatus | null> {
+  const bill = await prisma.bill.findUnique({
+    where: { id: billId },
+    include: {
+      paidBy: true,
+      billSplits: {
+        where: { userId },
+        select: {
+          hasPaid: true,
+          paymentConfirmed: true,
+        },
+      },
+    },
+  });
+
+  if (!bill) return null;
+
+  const isPayer = bill.paidBy.id === userId;
+  const userSplit = bill.billSplits[0];
+
+  return {
+    role: isPayer ? "payer" : "payee",
+    paid: isPayer ? true : userSplit?.hasPaid ?? false,
+    confirmed: isPayer ? true : userSplit?.paymentConfirmed ?? false,
+  };
+}
+
+export async function updateBillStatus({
+  billId,
+  userId,
+  hasPaid,
+  paymentConfirmed,
+}: {
+  billId: string;
+  userId: string;
+  hasPaid?: boolean;
+  paymentConfirmed?: boolean;
+}) {
+  await prisma.billSplit.updateMany({
+    where: { billId, userId },
+    data: {
+      ...(hasPaid !== undefined && { hasPaid }),
+      ...(paymentConfirmed !== undefined && { paymentConfirmed }),
+    },
+  });
+
+  await settleBill(billId);
+  return {
+    success: true,
+    message: "Bill Updated Successfully!",
+  };
+}
+
+export async function settleBill(billId: string) {
+  const splits = await prisma.billSplit.findMany({
+    where: { billId },
+  });
+
+  const allPaid = splits.every((s) => s.hasPaid);
+  const allConfirmed = splits.every((s) => s.paymentConfirmed);
+
+  if (allPaid && allConfirmed) {
+    await prisma.bill.update({
+      where: { id: billId },
+      data: { isSettled: true },
+    });
+  } else {
+    await prisma.bill.update({
+      where: { id: billId },
+      data: { isSettled: false },
+    });
+  }
 }

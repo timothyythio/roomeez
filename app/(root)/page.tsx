@@ -28,7 +28,7 @@ const Homepage = async () => {
           <Link href="/sign-up">
             <Button size="lg">Get Started</Button>
           </Link>
-          <Link href="/login">
+          <Link href="/sign-in">
             <Button variant="outline" size="lg">
               Sign In
             </Button>

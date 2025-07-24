@@ -22,6 +22,10 @@ export const SignUpFormSchema = z
     message: "Passwords must match",
     path: ["confirmPassword"],
   });
+export const UpdateUserSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  email: z.string().email("Invalid email address"),
+});
 
 export const CreateBillSchema = z.object({
   title: z.string().min(1),
@@ -35,4 +39,43 @@ export const CreateBillSchema = z.object({
     z.string(), // edge case: single checkbox
   ]),
   customSplits: z.array(z.string()).optional(),
+});
+
+export const BillDetailSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  amount: z.number(),
+  createdAt: z.date(),
+  isSettled: z.boolean(),
+
+  category: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .nullable(),
+
+  paidBy: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+
+  billSplits: z.array(
+    z.object({
+      id: z.string(),
+      billId: z.string(),
+      userId: z.string(),
+      amountOwed: z.number(),
+      hasPaid: z.boolean(),
+      paymentConfirmed: z.boolean(),
+      note: z.string().nullable(),
+
+      user: z.object({
+        id: z.string(),
+        name: z.string(),
+        email: z.string().optional(), // optional depending on your use
+      }),
+    })
+  ),
 });
