@@ -15,8 +15,11 @@ model Household {
 
   createdAt DateTime @default(now())
 
-  members HouseholdMember[]
-  bills   Bill[]
+  members   HouseholdMember[]
+  bills     Bill[]
+  chores    Chore[]
+  groceries GroceryItem[]
+  events    CalendarEvent[]
 }
 
 model HouseholdMember {
@@ -26,6 +29,128 @@ model HouseholdMember {
   household   Household @relation(fields: [householdId], references: [id])
   householdId String
   role        String // e.g., "admin", "member"
+}
+
+enum GroceryCategory {
+  PRODUCE
+  MEAT
+  DAIRY
+  FROZEN
+  BEVERAGES
+  PANTRY
+  BAKERY
+  SNACKS
+  CLEANING
+  HOUSEHOLD
+  MISC
+}
+
+model GroceryItem {
+  id        String          @id @default(cuid())
+  name      String
+  quantity  String?
+  purchased Boolean         @default(false)
+  category  GroceryCategory @default(MISC)
+
+  addedById String?
+  addedBy   User?   @relation(fields: [addedById], references: [id])
+
+  household   Household @relation(fields: [householdId], references: [id])
+  householdId String
+
+  createdAt DateTime @default(now())
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+
+  household   Household @relation(fields: [householdId], references: [id])
+  householdId String
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Chore {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  frequency   String // "monday", "daily", etc
+  completed   Boolean   @default(false)
+  dueDate     DateTime?
+
+  assignedTo   String?
+  assignedUser User?   @relation(fields: [assignedTo], references: [id])
+
+  household   Household @relation(fields: [householdId], references: [id])
+  householdId String
+
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  phoneNumber   String?
+  role          String    @default("user")
+  image         String? // for profile picture if using OAuth
+  createdAt     DateTime  @default(now())
+
+  households   HouseholdMember[]
+  billsPaid    Bill[]            @relation("PaidBills")
+  billSplits   BillSplit[]
+  BillCategory BillCategory[]
+
+  groceryItems   GroceryItem[]
+  calendarEvents CalendarEvent[]
+  chores         Chore[]
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime @db.Timestamp(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
 }
 
 model Bill {
@@ -69,60 +194,4 @@ model BillCategory {
   createdById String?
 
   bills Bill[]
-}
-
-model User {
-  id            String            @id @default(cuid())
-  name          String
-  email         String            @unique
-  emailVerified DateTime?
-  password      String?
-  phoneNumber   String?
-  role          String            @default("user")
-  image         String? // for profile picture if using OAuth
-  createdAt     DateTime          @default(now())
-  households    HouseholdMember[]
-  billsPaid     Bill[]            @relation("PaidBills")
-  billSplits    BillSplit[]
-  accounts      Account[]
-  sessions      Session[]
-  // // Optional for WebAuthn support
-  // Authenticator Authenticator[]
-  BillCategory  BillCategory[]
-}
-
-model Account {
-  id                String   @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime @db.Timestamp(6)
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now()) @db.Timestamp(6)
-  updatedAt    DateTime @updatedAt
-}
-
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
-
-  @@id([identifier, token])
 }

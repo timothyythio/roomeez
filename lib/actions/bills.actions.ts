@@ -131,6 +131,7 @@ export async function getBillById(billId: string) {
   });
 }
 
+// Returns a SUM (number) of how the entire household's owing amount (only if user is in household)
 export async function getMonthlyTotalBills() {
   const household = await getCurrentHousehold();
   if (!household) return 0;
@@ -153,14 +154,25 @@ export async function getMonthlyTotalBills() {
   return total._sum.amount ?? 0;
 }
 
+// Returns a SUM (number) of how much the user OWES
 export async function getTotalAmountOwing() {
   const user = await getCurrentUser();
   if (!user) return 0;
+
+  const memberships = await prisma.householdMember.findMany({
+    where: { userId: user.id },
+    select: { householdId: true },
+  });
+
+  const activeHouseholdIds = memberships.map((m) => m.householdId);
 
   const owed = await prisma.billSplit.aggregate({
     where: {
       userId: user.id,
       hasPaid: false,
+      bill: {
+        householdId: { in: activeHouseholdIds },
+      },
     },
     _sum: {
       amountOwed: true,
@@ -170,9 +182,17 @@ export async function getTotalAmountOwing() {
   return owed._sum.amountOwed ?? 0;
 }
 
+// Returns a SUM (number) of how much the user IS OWED
 export async function getTotalAmountOwed() {
   const user = await getCurrentUser();
   if (!user) return 0;
+
+  const memberships = await prisma.householdMember.findMany({
+    where: { userId: user.id },
+    select: { householdId: true },
+  });
+
+  const activeHouseholdIds = memberships.map((m) => m.householdId);
 
   const receivable = await prisma.billSplit.aggregate({
     where: {
@@ -182,6 +202,7 @@ export async function getTotalAmountOwed() {
       },
       bill: {
         paidById: user.id,
+        householdId: { in: activeHouseholdIds },
       },
     },
     _sum: {
@@ -192,6 +213,7 @@ export async function getTotalAmountOwed() {
   return receivable._sum.amountOwed ?? 0;
 }
 
+// Returns a list of bills (objects) of the user's household
 export async function getMonthlyBills() {
   const household = await getCurrentHousehold();
   if (!household) return [];
@@ -236,6 +258,7 @@ export async function getMonthlyBills() {
   return bills;
 }
 
+// Returns bills (objects) where the user is OWING
 export async function getBillsUserOwes() {
   const user = await getCurrentUser();
   if (!user) return [];
@@ -273,6 +296,7 @@ export async function getBillsUserOwes() {
   }));
 }
 
+// Returns bills (objects) where the user is OWED
 export async function getBillsUserIsOwed() {
   const user = await getCurrentUser();
   if (!user) return [];
@@ -315,6 +339,7 @@ export async function getBillsUserIsOwed() {
   }));
 }
 
+// Returns a list of users involved in a bill
 export async function getBillParticipants(billId: string) {
   return await prisma.billSplit.findMany({
     where: {
@@ -332,6 +357,7 @@ type BillUserStatus = {
   confirmed: boolean;
 };
 
+// Returns an object with the role of the user, their paid status, and confirmed status in a given bill
 export async function getUserStatusInBill(
   billId: string,
   userId: string
@@ -362,6 +388,7 @@ export async function getUserStatusInBill(
   };
 }
 
+// Updates the status of a given bill for a given person
 export async function updateBillStatus({
   billId,
   userId,
@@ -388,6 +415,7 @@ export async function updateBillStatus({
   };
 }
 
+//Marks a bill as settled/unsettled based on the status of the payment and its confirmation
 export async function settleBill(billId: string) {
   const splits = await prisma.billSplit.findMany({
     where: { billId },
@@ -407,4 +435,38 @@ export async function settleBill(billId: string) {
       data: { isSettled: false },
     });
   }
+}
+
+export async function getNetBalanceBetween(userAId: string, userBId: string) {
+  const [a, b] = await Promise.all([
+    prisma.billSplit.aggregate({
+      where: {
+        userId: userAId,
+        bill: {
+          paidById: userBId,
+        },
+        hasPaid: false,
+      },
+      _sum: { amountOwed: true },
+    }),
+    prisma.billSplit.aggregate({
+      where: {
+        userId: userBId,
+        bill: {
+          paidById: userAId,
+        },
+        hasPaid: false,
+      },
+      _sum: { amountOwed: true },
+    }),
+  ]);
+
+  const amountAtoB = a._sum.amountOwed || 0;
+  const amountBtoA = b._sum.amountOwed || 0;
+
+  return {
+    youOwe: amountAtoB,
+    theyOwe: amountBtoA,
+    net: amountBtoA - amountAtoB, // positive = they owe you, negative = you owe them
+  };
 }

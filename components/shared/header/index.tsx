@@ -6,21 +6,36 @@ import Menu from "./menu";
 const Header = () => {
   return (
     <header className="w-full border-b bg-white">
-      <div className="wrapper flex items-center justify-between py-3 px-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Image
-            src="/images/roomeez-logo.png"
-            alt={`${APP_NAME} logo`}
-            width={140}
-            height={60}
-            priority
-          />
-        </Link>
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
+        <div className="grid h-16 grid-cols-3 items-center">
+          {/* Left: Logo */}
+          <div className="flex items-center justify-start">
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/images/logo.svg"
+                alt={`${APP_NAME} logo`}
+                width={48}
+                height={48}
+                priority
+              />
+            </Link>
+          </div>
 
-        <Menu />
+          {/* Center: Desktop nav */}
 
-        <div className="hidden md:block">
-          {/* Reserved space or future links */}
+          {/* Center: Mobile — hamburger + centered search */}
+          {/* <div className="md:hidden flex items-center justify-center gap-3">
+              <MobileSheet />
+
+              <div className="flex-1 max-w-[260px]">
+                <Search />
+              </div>
+            </div> */}
+
+          {/* Right: Cart/User (always shown), flush to viewport edge */}
+          <div className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2">
+            <Menu />
+          </div>
         </div>
       </div>
     </header>

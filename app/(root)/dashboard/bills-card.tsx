@@ -50,7 +50,7 @@ const BillsCard = ({ totalBills, amountOwing, amountOwed }: Props) => {
           </Button>
         </Link>
 
-        <Link href="/bills/create">
+        <Link href="/bills">
           <Button variant="outline" size="lg">
             View All Bills
           </Button>

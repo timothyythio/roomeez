@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -17,6 +16,7 @@ import Link from "next/link";
 import LeaveHouseholdButton from "@/components/shared/household/leave-household-button";
 import JoinHouseholdDialog from "@/components/shared/household/join-household-dialog";
 import InviteMemberDialog from "@/components/shared/household/invite-member-dialog";
+import MemberInfoDialog from "@/components/shared/household/member-info-dropdown";
 
 const HouseholdCard = async () => {
   const user = await getCurrentUser();
@@ -78,12 +78,15 @@ const HouseholdCard = async () => {
         <ul className="space-y-3">
           {members.map((member) => (
             <li key={member.id} className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src={member.user.image || ""} />
-                <AvatarFallback>
-                  {member.user.name.charAt(0).toUpperCase() ?? "U"}
-                </AvatarFallback>
-              </Avatar>
+              <MemberInfoDialog
+                member={{
+                  id: member.user.id,
+                  name: member.user.name,
+                  image: member.user.image,
+                }}
+                currentUserId={user!.id!}
+              />
+
               <div className="flex flex-col">
                 <span
                   className={cn(
